@@ -1,0 +1,4 @@
+flask>=3.0
+flask-sock>=0.7
+pyserial>=3.5
+numpy>=1.24

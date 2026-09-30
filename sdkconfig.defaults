@@ -1,0 +1,2 @@
+# ESP32-S3 TX-enabled ESP-SDR standalone build.
+# Chip-specific settings are in sdkconfig.defaults.esp32s3.

@@ -1,0 +1,1 @@
+/* Optional diagnostics are intentionally disabled in the standalone release. */

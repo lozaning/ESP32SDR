@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESP-SDR S3 Console</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>ESP-SDR&nbsp;S3 Console</h1>
+  <span id="status" class="pill">connecting…</span>
+</header>
+
+<section id="devices">
+  <div class="row between">
+    <h2>Dongles</h2>
+    <button id="refresh" class="ghost">Rescan</button>
+  </div>
+  <table id="devtable">
+    <thead><tr><th>Serial</th><th>Firmware</th><th>Port</th><th>Role</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p class="hint">Assign one dongle to <b>RX</b> and one to <b>TX</b>. TX needs the
+     <code>S3SDR-TX</code> firmware; RX works with either.</p>
+</section>
+
+<main>
+  <!-- ================= TRANSMIT (single sender) ================= -->
+  <div class="pane">
+    <h2>Transmit · Message</h2>
+    <div class="controls">
+      <label>TX dongle
+        <select id="tx-dev"><option value="">— none —</option></select>
+      </label>
+      <label>Modulation
+        <select id="lk-mod">
+          <option value="ook">OOK</option>
+          <option value="ask">ASK</option>
+          <option value="fsk">2-FSK</option>
+          <option value="gfsk">GFSK</option>
+          <option value="bpsk">BPSK (n/a)</option>
+          <option value="qpsk">QPSK (n/a)</option>
+        </select>
+      </label>
+      <label>Avg/bit
+        <input id="lk-avg" type="number" value="3" min="1" max="8">
+      </label>
+    </div>
+    <label class="block">Message
+      <input id="lk-msg" type="text" maxlength="30" value="HELLO SDR" style="width:100%">
+    </label>
+    <div class="row"><button id="lk-send" class="danger">Send &amp; Decode</button></div>
+    <div class="meta" id="lk-status">Assign one dongle TX and one RX, then send. OOK/ASK/FSK/GFSK work over the air; BPSK/QPSK need the DAC phase path (not available on the S3).</div>
+    <h3>Generated waveform</h3>
+    <canvas id="tx-wave" width="256" height="70"></canvas>
+    <div class="meta" id="tx-meta">the modulated signal that will be keyed onto the carrier</div>
+  </div>
+
+  <!-- ================= RECEIVE (waterfall + decode) ================= -->
+  <div class="pane">
+    <h2>Receive · Waterfall</h2>
+    <div class="controls">
+      <label>RX dongle
+        <select id="rx-dev"><option value="">— none —</option></select>
+      </label>
+      <label>Center MHz
+        <input id="rx-freq" type="number" value="2437" min="100" max="6000" step="1">
+      </label>
+      <label>Span
+        <select id="rx-rate">
+          <option value="0">80 MHz (fast)</option>
+          <option value="1">40 MHz</option>
+          <option value="6" selected>16 MHz</option>
+        </select>
+      </label>
+      <button id="rx-apply">Apply</button>
+    </div>
+    <canvas id="waterfall" width="256" height="240"></canvas>
+    <div class="axis"><span id="wf-lo"></span><span id="wf-ctr"></span><span id="wf-hi"></span></div>
+    <h3>Live waveform (envelope)</h3>
+    <canvas id="rx-wave" width="256" height="90"></canvas>
+    <div class="meta" id="rx-meta">idle</div>
+
+    <div id="lk-result" style="display:none">
+      <h3>Decoded message</h3>
+      <div class="row" style="gap:24px;flex-wrap:wrap">
+        <div><span class="hint">Sent</span><div id="lk-sent" class="lkval"></div></div>
+        <div><span class="hint">Decoded</span><div id="lk-dec" class="lkval"></div></div>
+        <div><span class="hint">BER</span><div id="lk-ber" class="lkval"></div></div>
+        <div><span class="hint">CRC</span><div id="lk-crc" class="lkval"></div></div>
+      </div>
+      <pre id="lk-bits"></pre>
+    </div>
+  </div>
+</main>
+
+
+<script src="app.js"></script>
+</body>
+</html>
