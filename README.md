@@ -107,8 +107,16 @@ firmware "currently implements reception only." The code is retained
 (`TXIQ8`, `TXDMA`, `TXVENDOR`, and the `PEEK/POKE/TXLOAD` lab commands) for
 anyone who wants to keep digging, but **do not expect RF from it.**
 
+> **Update (2026-10-02):** the extra registers that `tx_dma()` copied from the
+> vendor RF-test capture (`0x60033080`–`9c`, `0x60033d04`, `0x60033d08`, …) turned
+> out to be **Wi-Fi MAC** receive-buffer and frame-transmit registers, not part of
+> a DAC path. So chasing the "remaining suspects" in that capture is a dead end.
+> See the correction section in [`docs/FINDINGS.md`](docs/FINDINGS.md).
+
 **2. Carrier keying via the Wi-Fi tone generator — WORKS.**
-`esp_phy_wifi_tx_tone()` (used by the vendor `wifiscwout` command) keys a strong
+`esp_phy_wifi_tx_tone()` (used by the vendor `wifiscwout` command) drives a
+**digital tone generator in the Wi-Fi baseband** (two tone channels, each with a
+software-set frequency and amplitude; `wifiscwout` uses one at frequency 0). It keys a strong
 CW carrier on a Wi-Fi channel and radiates ~49 dB at the RX. `prepare_tx()` does:
 
 ```c
@@ -130,8 +138,8 @@ This carrier is controllable in **amplitude** (on/off, or gain) and **frequency*
 | ASK | carrier on / off (binary) | ✅ 0 % BER |
 | 2-FSK | carrier keyed between two channels | ✅ 0 % BER |
 | GFSK | same 2-FSK path (no Gaussian shaping) | ✅ 0 % BER |
-| BPSK / QPSK | needs *phase* control → DAC path | ❌ not possible |
-| raw I/Q | DAC replay | ❌ not possible |
+| BPSK / QPSK | needs *phase* control | ❌ not implemented |
+| raw I/Q | DAC replay does not radiate; baseband tone generator uncharacterised | ❌ not implemented |
 
 ### The message link (`gui/link.py`)
 
@@ -247,7 +255,9 @@ Everything was done over the built-in USB-Serial/JTAG — no external tools.
   Beware the −3 MHz spur, the mirrored spectrum, and ADC clipping (drop RX gain).
 
 `docs/FINDINGS.md` has the full register map and the negative results, so nobody
-has to rediscover that the DAC path is a dead end.
+has to rediscover that the DAC path (and the MAC registers mistaken for it) is a dead end.
+The baseband tone generator behind `TXTONE` is the part of the TX chain known to
+radiate, and is the open lead for anyone continuing transmit work.
 
 ---
 
